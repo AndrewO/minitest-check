@@ -12,7 +12,7 @@ class MyClass
   end
 end
 
-class SimpleTest < MiniTest::Check::TestCase
+class SimpleTest < MiniTest::Unit::TestCase
   def check_add(a, b)
     puts "checking with #{a}, #{b}"
     assert_equal(MyClass.new.add(a, b), a + b)
@@ -34,4 +34,4 @@ SimpleTest.seed(100) do |i|
 end
 
 # Make sure we test with c as nil at least once
-SimpleTest.seed { {a: 1, b: 2, c: nil } }
+SimpleTest.seed_value(a: 1, b: 2, c: nil)
