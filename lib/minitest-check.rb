@@ -88,7 +88,7 @@ module MiniTest
           private
           def collect(stat_name, stat_value)
             changed
-            notify_observers("#{self.class.name}##{self.__name__}:#{stat_name}", stat_value)#, @context) Waiting until I know how we want to display contexts
+            notify_observers("#{self.class.superclass.name}##{self.__name__}:#{stat_name}", stat_value)#, @context) Waiting until I know how we want to display contexts
             stat_value
           end
         end
