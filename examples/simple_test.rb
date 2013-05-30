@@ -14,8 +14,9 @@ end
 
 class SimpleTest < MiniTest::Unit::TestCase
   def check_add(a, b)
-    puts "checking with #{a}, #{b}"
-    assert_equal(MyClass.new.add(a, b), a + b)
+    collect(:input, [a, b])
+    #puts "checking with #{a}, #{b}"
+    assert_equal(collect(:output, MyClass.new.add(a, b)), a + b)
   end
 
   def check_maybe_add(b, c)

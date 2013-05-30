@@ -43,7 +43,9 @@ module MiniTest
 
         # Convenience method to run a block a certain number of times
         def seed(num = 1, &blk)
-          check_with(Enumerator.new {|contexts| num.times {|i| contexts << blk.call(1)}})
+          check_with(Enumerator.new {|contexts|
+            num.times {|i| contexts << blk.call(i)}
+          })
         end
 
         def seed_value(hash_or_object)
@@ -87,6 +89,7 @@ module MiniTest
           def collect(stat_name, stat_value)
             changed
             notify_observers("#{self.class.name}##{self.__name__}:#{stat_name}", stat_value)#, @context) Waiting until I know how we want to display contexts
+            stat_value
           end
         end
         check_methods.each do |name|
@@ -107,7 +110,11 @@ module MiniTest
     end
 
     class Collector
-      Record  = Struct.new(:count, :contexts)
+      Record = Struct.new(:count, :contexts) do
+        def initialize
+          super(0, Set.new)
+        end
+      end
 
       def initialize
         # TODO: better storage mechanism
@@ -120,7 +127,7 @@ module MiniTest
         # }
         @store = Hash.new {|s, n|
           s[n] = Hash.new {|n, v|
-            n[v] = Record.new(0, Set.new)
+            n[v] = Record.new
           }
         }
       end
@@ -130,9 +137,52 @@ module MiniTest
         @store[name][value].contexts << context
       end
 
-      def report
-        # TODO: something better
-        puts @store.inspect
+      def report(io = STDOUT)
+        return if @store.length == 0
+
+        io.puts
+        io.puts "Collected data for #{@store.length} probes during checks:"
+        @store.each do |name, data|
+          io.puts
+          io.puts name
+          io.puts
+          draw_graph(
+            data.map {|(value, record)| [value.to_s, record.count] },
+            io
+          )
+        end
+      end
+
+      private
+      def draw_graph(pairs, io, max_width = 80)
+        if pairs
+          data_groups = pairs.group_by {|d| d[1] == 1 ? :singles : :multis }
+          data = data_groups[:multis].to_a.sort {|a,b| b[1] <=> a[1]}
+          largest_value_width = data.map {|d| d[0].length}.max
+          largest_num = data[0][1]
+          scale = if largest_num > 0
+            (max_width - largest_value_width - 3).to_f / largest_num.to_f
+          else
+            0
+          end
+
+          data.each do |(value, num)|
+            num_string = num.to_s
+            num_length = num_string.length
+            bar_length = (num.to_f * scale).to_i
+            fill_length = bar_length - num_length
+            if fill_length > 0
+              io.puts "#{value.to_s.ljust(largest_value_width)} | #{num_string}#{'#' * fill_length}"
+            else
+              io.puts "#{value.to_s.ljust(largest_value_width)} | #{'#' * bar_length} (#{num_string})"
+            end
+          end
+
+          if singles = data_groups[:singles]
+            io.puts
+            io.puts "#{singles.length} singles: #{singles.map {|d| d[0].inspect}.join(", ")}"
+          end
+        end
       end
     end
 
