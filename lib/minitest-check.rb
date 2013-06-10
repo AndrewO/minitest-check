@@ -29,7 +29,7 @@ module MiniTest
 
       class << self
         def contexts
-          @contexts or superclass.respond_to?(:contexts) ? superclass.contests : []
+          @contexts or superclass.respond_to?(:contexts) ? superclass.contexts : []
         end
 
         def check_with(generator)
@@ -185,15 +185,15 @@ module MiniTest
         end
       end
     end
+  end
 
-    class Spec
-      class << self
-        def check name, &block
-          define_method "check_#{name.gsub(/\W+/, '_')}", &block
-        end
-        # Make the Haskell people happy. :)
-        alias_method :prop, :check
+  class Spec
+    class << self
+      def check name, &block
+        define_method "check_#{name.gsub(/\W+/, '_')}", &block
       end
+      # Make the Haskell people happy. :)
+      alias_method :prop, :check
     end
   end
 end
