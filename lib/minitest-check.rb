@@ -157,24 +157,26 @@ module MiniTest
       def draw_graph(pairs, io, max_width = 80)
         if pairs
           data_groups = pairs.group_by {|d| d[1] == 1 ? :singles : :multis }
-          data = data_groups[:multis].to_a.sort {|a,b| b[1] <=> a[1]}
-          largest_value_width = data.map {|d| d[0].length}.max
-          largest_num = data[0][1]
-          scale = if largest_num > 0
-            (max_width - largest_value_width - 3).to_f / largest_num.to_f
-          else
-            0
-          end
-
-          data.each do |(value, num)|
-            num_string = num.to_s
-            num_length = num_string.length
-            bar_length = (num.to_f * scale).to_i
-            fill_length = bar_length - num_length
-            if fill_length > 0
-              io.puts "#{value.to_s.ljust(largest_value_width)} | #{num_string}#{'#' * fill_length}"
+          if multis = data_groups[:multis]
+            data = multis.to_a.sort {|a,b| b[1] <=> a[1]}
+            largest_value_width = data.map {|d| d[0].length}.max
+            largest_num = data[0][1]
+            scale = if largest_num > 0
+              (max_width - largest_value_width - 3).to_f / largest_num.to_f
             else
-              io.puts "#{value.to_s.ljust(largest_value_width)} | #{'#' * bar_length} (#{num_string})"
+              0
+            end
+
+            data.each do |(value, num)|
+              num_string = num.to_s
+              num_length = num_string.length
+              bar_length = (num.to_f * scale).to_i
+              fill_length = bar_length - num_length
+              if fill_length > 0
+                io.puts "#{value.to_s.ljust(largest_value_width)} | #{num_string}#{'#' * fill_length}"
+              else
+                io.puts "#{value.to_s.ljust(largest_value_width)} | #{'#' * bar_length} (#{num_string})"
+              end
             end
           end
 
